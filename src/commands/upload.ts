@@ -3,17 +3,14 @@ import cli from 'cli-ux'
 import axios from 'axios'
 import * as fs from 'fs'
 import * as path from 'path'
+import * as FormData from 'form-data'
 
 export default class Upload extends Command {
   static description = 'Upload files'
 
-  // static flags = {
-  //   help: flags.help({char: 'h'}),
-  //   // flag with a value (-n, --name=VALUE)
-  //   name: flags.string({char: 'n', description: 'name to print'}),
-  //   // flag with no value (-f, --force)
-  //   force: flags.boolean({char: 'f'}),
-  // }
+  static flags = {
+    file: flags.string({char: 'f', description: 'File to upload'}),
+  }
 
   static args = [{
     name: 'environment',
@@ -35,6 +32,18 @@ export default class Upload extends Command {
     })
   }
 
+  async getImage (file) {
+    return new Promise(resolve => {
+      fs.readFile(file, 'base64', (err, data) => {
+        if (err) {
+          return resolve(this.error(err));
+        }
+        const img = new Buffer.from(data, 'base64').toString('base64');
+        resolve(img);
+      });
+    })
+  }
+
   async getFile (file) {
     return new Promise(resolve => {
       fs.readFile(file, 'utf8', (err, data) => {
@@ -47,16 +56,30 @@ export default class Upload extends Command {
   }
 
   async upload (fileName) {
-    const content = await this.getFile(fileName);
+    const split = fileName.split('.');
+    const format = split[split.length - 1];
     const config = await this.getConfig();
     const { url, key, password, theme } = config;
-    const res = await axios.put(`${url}/admin/themes/master/${fileName}.json`, {
-      key,
-      password,
-      content
-    })
-    if (res.data.status.includes('error')) {
-      this.log(res.data.status);
+    if (format === 'png' || format === 'jpg' || format === 'ico' || format === 'woff' || format === 'woff2' || format === 'eot' || format === 'ttf') {
+      const attachment = await this.getImage(fileName);
+      const res = await axios.put(`${url}/admin/themes/master/${fileName}.json`, {
+        key,
+        password,
+        attachment
+      })
+      if (res.data.status.includes('error')) {
+        this.log(res.data.status);
+      }
+    } else {
+      const content = await this.getFile(fileName);
+      const res = await axios.put(`${url}/admin/themes/master/${fileName}.json`, {
+        key,
+        password,
+        content
+      })
+      if (res.data.status.includes('error')) {
+        this.log(res.data.status);
+      }
     }
     return this.log(`updated: ${fileName}`)
   }
@@ -117,22 +140,36 @@ export default class Upload extends Command {
   }
 
   async run() {
-    // const {args, flags} = this.parse(Upload)
+    const {args, flags} = this.parse(Upload);
     cli.action.start('Finding files in current directory');
+    if (flags.file) {
+      cli.action.start(`Uploading ${flags.file}`);
+      this.upload(flags.file);
+      return cli.action.stop();
+    }
     const tree = await this.getTree();
+    cli.action.stop();
     tree.display();
     const files = await this.getFiles();
+    cli.action.start('Uploading assets');
     for (var i = 0; i < files.assets.length; i++) {
       this.upload(`assets/${files.assets[i]}`);
     }
+    cli.action.stop();
+    cli.action.start('Uploading layouts');
     for (var i = 0; i < files.layouts.length; i++) {
       this.upload(`layouts/${files.layouts[i]}`);
     }
+    cli.action.stop();
+    cli.action.start('Uploading templates');
     for (var i = 0; i < files.templates.length; i++) {
       this.upload(`templates/${files.templates[i]}`);
     }
+    cli.action.stop();
+    cli.action.start('Uploading snippets');
     for (var i = 0; i < files.snippets.length; i++) {
       this.upload(`snippets/${files.snippets[i]}`);
     }
+    cli.action.stop();
   }
 }

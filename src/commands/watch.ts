@@ -2,6 +2,7 @@ import {Command, flags} from '@oclif/command'
 import cli from 'cli-ux'
 import axios from 'axios'
 import * as fs from 'fs'
+import FormData from 'form-data'
 
 export default class Watch extends Command {
   static description = 'Watch for any changes in your theme and upload them'
@@ -30,6 +31,18 @@ export default class Watch extends Command {
     })
   }
 
+  async getImage (file) {
+    return new Promise(resolve => {
+      fs.readFile(file, 'base64', (err, data) => {
+        if (err) {
+          return resolve(this.error(err));
+        }
+        const img = new Buffer.from(data, 'base64').toString('base64');
+        resolve(img);
+      });
+    })
+  }
+
   async getFile (file) {
     return new Promise(resolve => {
       fs.readFile(file, 'utf8', (err, data) => {
@@ -42,16 +55,30 @@ export default class Watch extends Command {
   }
 
   async handleChange (fileName) {
-    const content = await this.getFile(fileName);
+    const split = fileName.split('.');
+    const format = split[split.length - 1];
     const config = await this.getConfig();
     const { url, key, password, theme } = config;
-    const res = await axios.put(`${url}/admin/themes/master/${fileName}.json`, {
-      key,
-      password,
-      content
-    })
-    if (res.data.status.includes('error')) {
-      this.log(res.data.status);
+    if (format === 'png' || format === 'jpg' || format === 'ico') {
+      const attachment = await this.getImage(fileName);
+      const res = await axios.put(`${url}/admin/themes/master/${fileName}.json`, {
+        key,
+        password,
+        attachment
+      })
+      if (res.data.status.includes('error')) {
+        this.log(res.data.status);
+      }
+    } else {
+      const content = await this.getFile(fileName);
+      const res = await axios.put(`${url}/admin/themes/master/${fileName}.json`, {
+        key,
+        password,
+        content
+      })
+      if (res.data.status.includes('error')) {
+        this.log(res.data.status);
+      }
     }
     return this.log(`updated: ${fileName}`)
   }
