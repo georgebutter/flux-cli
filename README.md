@@ -19,7 +19,7 @@ $ npm install -g flux
 $ flux COMMAND
 running command...
 $ flux (-v|--version|version)
-flux/0.0.0 darwin-x64 node-v10.13.0
+flux/0.0.1 darwin-x64 node-v10.13.0
 $ flux --help [COMMAND]
 USAGE
   $ flux COMMAND
@@ -29,10 +29,10 @@ USAGE
 # Commands
 <!-- commands -->
 * [`flux config`](#flux-config)
-* [`flux download`](#flux-download)
+* [`flux download ENVIRONMENT`](#flux-download-environment)
 * [`flux help [COMMAND]`](#flux-help-command)
-* [`flux upload [FILE]`](#flux-upload-file)
-* [`flux watch [FILE]`](#flux-watch-file)
+* [`flux upload ENVIRONMENT`](#flux-upload-environment)
+* [`flux watch ENVIRONMENT`](#flux-watch-environment)
 
 ## `flux config`
 
@@ -46,18 +46,21 @@ OPTIONS
   -h, --help  show CLI help
 ```
 
-_See code: [src/commands/config.ts](https://github.com/ButsAndCats/flux-cli/blob/v0.0.0/src/commands/config.ts)_
+_See code: [src/commands/config.ts](https://github.com/ButsAndCats/flux-cli/blob/v0.0.1/src/commands/config.ts)_
 
-## `flux download`
+## `flux download ENVIRONMENT`
 
 Downloads a theme from your site
 
 ```
 USAGE
-  $ flux download
+  $ flux download ENVIRONMENT
+
+ARGUMENTS
+  ENVIRONMENT  [default: default] Choose which environment to watch
 ```
 
-_See code: [src/commands/download.ts](https://github.com/ButsAndCats/flux-cli/blob/v0.0.0/src/commands/download.ts)_
+_See code: [src/commands/download.ts](https://github.com/ButsAndCats/flux-cli/blob/v0.0.1/src/commands/download.ts)_
 
 ## `flux help [COMMAND]`
 
@@ -76,33 +79,34 @@ OPTIONS
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.0/src/commands/help.ts)_
 
-## `flux upload [FILE]`
+## `flux upload ENVIRONMENT`
 
-describe the command here
+Upload files
 
 ```
 USAGE
-  $ flux upload [FILE]
+  $ flux upload ENVIRONMENT
+
+ARGUMENTS
+  ENVIRONMENT  [default: default] Choose which environment to watch
 
 OPTIONS
-  -f, --force
-  -h, --help       show CLI help
-  -n, --name=name  name to print
+  -f, --file=file  File to upload
 ```
 
-_See code: [src/commands/upload.ts](https://github.com/ButsAndCats/flux-cli/blob/v0.0.0/src/commands/upload.ts)_
+_See code: [src/commands/upload.ts](https://github.com/ButsAndCats/flux-cli/blob/v0.0.1/src/commands/upload.ts)_
 
-## `flux watch [FILE]`
+## `flux watch ENVIRONMENT`
 
 Watch for any changes in your theme and upload them
 
 ```
 USAGE
-  $ flux watch [FILE]
+  $ flux watch ENVIRONMENT
 
-OPTIONS
-  -h, --help  show CLI help
+ARGUMENTS
+  ENVIRONMENT  [default: default] Choose which environment to watch
 ```
 
-_See code: [src/commands/watch.ts](https://github.com/ButsAndCats/flux-cli/blob/v0.0.0/src/commands/watch.ts)_
+_See code: [src/commands/watch.ts](https://github.com/ButsAndCats/flux-cli/blob/v0.0.1/src/commands/watch.ts)_
 <!-- commandsstop -->

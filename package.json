@@ -1,7 +1,7 @@
 {
   "name": "flux",
   "description": "Create and manage themes for the Flux CMS.",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "author": "George @ButsAndCats",
   "bin": {
     "flux": "./bin/run"
