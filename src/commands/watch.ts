@@ -2,7 +2,6 @@ import {Command, flags} from '@oclif/command'
 import cli from 'cli-ux'
 import axios from 'axios'
 import * as fs from 'fs'
-import FormData from 'form-data'
 
 export default class Watch extends Command {
   static description = 'Watch for any changes in your theme and upload them'
@@ -18,7 +17,7 @@ export default class Watch extends Command {
     default: 'default'
   }]
 
-  async getConfig () {
+  async getConfig (): Promise<{url: string, theme: string, password: string, key: string}> {
     const {args, flags} = this.parse(Watch)
     return new Promise(resolve => {
       fs.readFile('./fluxconfig.json', 'utf8', (err, data) => {
@@ -31,21 +30,21 @@ export default class Watch extends Command {
     })
   }
 
-  async getImage (file) {
+  async getImage (file: string): Promise<string> {
     return new Promise(resolve => {
       fs.readFile(file, 'base64', (err, data) => {
         if (err) {
           return resolve(this.error(err));
         }
-        const img = new Buffer.from(data, 'base64').toString('base64');
+        const img = Buffer.from(data, 'base64').toString('base64');
         resolve(img);
       });
     })
   }
 
-  async getFile (file) {
+  async getFile (file: string): Promise<string> {
     return new Promise(resolve => {
-      fs.readFile(file, 'utf8', (err, data) => {
+      fs.readFile(file, 'utf8', (err, data: string) => {
         if (err) {
           return resolve(this.error(err));
         }
@@ -54,9 +53,9 @@ export default class Watch extends Command {
     })
   }
 
-  async handleChange (fileName) {
-    const split = fileName.split('.');
-    const format = split[split.length - 1];
+  async handleChange (fileName: string): Promise<void> {
+    const split: string[] = fileName.split('.');
+    const format: string = split[split.length - 1];
     const config = await this.getConfig();
     const { url, key, password, theme } = config;
     if (format === 'png' || format === 'jpg' || format === 'ico') {
@@ -70,7 +69,7 @@ export default class Watch extends Command {
         this.log(res.data.status);
       }
     } else {
-      const content = await this.getFile(fileName);
+      const content: string = await this.getFile(fileName);
       const res = await axios.put(`${url}/admin/themes/master/${fileName}.json`, {
         key,
         password,
@@ -88,7 +87,7 @@ export default class Watch extends Command {
     cli.action.start(`[${args.environment}] Listening for changes in current directory`)
     fs.watch('.', { recursive: true }, (eventType, fileName) => {
       this.handleChange(fileName)
-      .catch((err) => {
+      .catch((err: { response: string }) => {
         this.log(err.response)
       });
     })

@@ -3,7 +3,17 @@ import cli from 'cli-ux'
 import axios from 'axios'
 import * as fs from 'fs'
 import * as path from 'path'
-import * as FormData from 'form-data'
+
+interface Environment {
+  url: string;
+  key: string;
+  password: string;
+  theme: string;
+}
+
+interface Config {
+  [key: string]: Environment;
+}
 
 export default class Upload extends Command {
   static description = 'Upload files'
@@ -19,32 +29,33 @@ export default class Upload extends Command {
     default: 'default'
   }]
 
-  async getConfig () {
-    const {args, flags} = this.parse(Upload)
+  async getConfig (): Promise<Environment> {
+    const {args, flags} = this.parse(Upload);
     return new Promise(resolve => {
       fs.readFile('./fluxconfig.json', 'utf8', (err, data) => {
         if (err) {
           return resolve(this.error(err));
         }
-        const config = JSON.parse(data);
+
+        const config: Config = JSON.parse(data);
         resolve(config[args.environment]);
       });
     })
   }
 
-  async getImage (file) {
+  async getImage (file: string) {
     return new Promise(resolve => {
       fs.readFile(file, 'base64', (err, data) => {
         if (err) {
           return resolve(this.error(err));
         }
-        const img = new Buffer.from(data, 'base64').toString('base64');
+        const img = Buffer.from(data, 'base64').toString('base64');
         resolve(img);
       });
     })
   }
 
-  async getFile (file) {
+  async getFile (file: string) {
     return new Promise(resolve => {
       fs.readFile(file, 'utf8', (err, data) => {
         if (err) {
@@ -55,9 +66,10 @@ export default class Upload extends Command {
     })
   }
 
-  async upload (fileName) {
-    const split = fileName.split('.');
-    const format = split[split.length - 1];
+  async upload (fileName: string) {
+    const split: string[] = fileName.split('.');
+    const format: string = split[split.length - 1];
+
     const config = await this.getConfig();
     const { url, key, password, theme } = config;
     if (format === 'png' || format === 'jpg' || format === 'ico' || format === 'woff' || format === 'woff2' || format === 'eot' || format === 'ttf') {
@@ -72,7 +84,7 @@ export default class Upload extends Command {
       }
     } else {
       const content = await this.getFile(fileName);
-      const res = await axios.put(`${url}/admin/themes/master/${fileName}.json`, {
+      const res: any = await axios.put(`${url}/admin/themes/master/${fileName}.json`, {
         key,
         password,
         content
@@ -84,9 +96,9 @@ export default class Upload extends Command {
     return this.log(`updated: ${fileName}`)
   }
 
-  async walk (dir, done) {
+  async walk (dir: string): Promise<string> {
     return new Promise((resolve, reject) => {
-      const results = [];
+      const results: any = [];
       fs.readdir(dir, function(err, list) {
         if (err) {
           reject(err);
@@ -105,8 +117,8 @@ export default class Upload extends Command {
     });
   }
 
-  async getTree()  {
-    const directories = ['assets', 'layouts', 'templates', 'snippets'];
+  async getTree(): Promise<any> {
+    const directories: string[] = ['assets', 'layouts', 'templates', 'snippets'];
     const tree = cli.tree();
     for (let i = 0; i < directories.length; i++) {
       const dir = directories[i];
@@ -122,13 +134,13 @@ export default class Upload extends Command {
     })
   }
 
-  async getFiles()  {
-    const directories = ['assets', 'layouts', 'templates', 'snippets'];
-    const tree = {};
+  async getFiles(): Promise<{ assets: string[], layouts: string[], templates: string[], snippets: string[] }> {
+    const directories: string[] = ['assets', 'layouts', 'templates', 'snippets'];
+    const tree: any = {};
     for (let i = 0; i < directories.length; i++) {
-      const dir = directories[i];
+      const dir: string = directories[i];
       const results = await this.walk(dir);
-      const subtree = [];
+      const subtree: string[] = [];
       for (var j = 0; j < results.length; j++) {
         subtree.push(results[j])
       }

@@ -3,6 +3,17 @@ import cli from 'cli-ux'
 import axios from 'axios'
 import * as fs from 'fs'
 
+interface Environment {
+  url: string;
+  key: string;
+  password: string;
+  theme: string;
+}
+
+interface Config {
+  [key: string]: Environment;
+}
+
 export default class Download extends Command {
   static description = 'Downloads a theme from your site'
 
@@ -13,15 +24,14 @@ export default class Download extends Command {
     default: 'default'
   }]
 
-  async getConfig () {
+  async getConfig (): Promise<Environment> {
     const {args, flags} = this.parse(Download)
     return new Promise(resolve => {
       fs.readFile('./fluxconfig.json', 'utf8', (err, data) => {
         if (err) {
           return resolve(this.error(err));
         }
-        console.log(data)
-        const config = JSON.parse(data);
+        const config: Config = JSON.parse(data);
         resolve(config[args.environment]);
       });
     })
@@ -65,7 +75,7 @@ export default class Download extends Command {
         }
         fs.writeFile(`./${directories[i]}/${files[f]}`, res.data.file, err => {
           if (err) {
-            return this.log(err);
+            throw this.log(`Could not write file ${directories[i]}/${files[f]}`);
           }
         })
       }

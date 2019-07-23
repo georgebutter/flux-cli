@@ -45,8 +45,7 @@ export default class Config extends Command {
 }`,
       err => {
         if (err) {
-          return this.log(err)
-
+          throw this.log(`Could not write fluxconfig.json`)
         } else {
           return this.log('Created fluxconfig.json')
         }
